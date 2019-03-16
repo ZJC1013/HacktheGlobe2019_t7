@@ -8,18 +8,14 @@ import re
 import time
 import spacy
 import string
+import csv
 
-indir = '/u/cs401/A1/data/'
-abbv_dir_1 = '/u/cs401/Wordlists/abbrev.english'
-abbv_dir_2 = '/u/cs401/Wordlists/pn_abbrev.english'
-clitics_dir = '/u/cs401/Wordlists/clitics'
-stop_dir = '/u/cs401/Wordlists/StopWords'
-
-# indir = '/Users/jasonzhou/Downloads/CSC401_NLP_origin/A1/data/'
-# abbv_dir_1 = '/Users/jasonzhou/Downloads/CSC401_NLP_origin/A1/Wordlists/abbrev.english'
-# abbv_dir_2 = '/Users/jasonzhou/Downloads/CSC401_NLP_origin/A1/Wordlists/pn_abbrev.english'
-# clitics_dir = '/Users/jasonzhou/Downloads/CSC401_NLP_origin/A1/Wordlists/clitics'
-# stop_dir = '/Users/jasonzhou/Downloads/CSC401_NLP_origin/A1/Wordlists/StopWords'
+# indir = '/Users/jasonzhou/Downloads/training_1600000_processed_noemoticon.csv'
+indir = '/Users/jasonzhou/Downloads/Hack_data'
+abbv_dir_1 = '/Users/jasonzhou/Downloads/CSC401_NLP_origin/A1/Wordlists/abbrev.english'
+abbv_dir_2 = '/Users/jasonzhou/Downloads/CSC401_NLP_origin/A1/Wordlists/pn_abbrev.english'
+clitics_dir = '/Users/jasonzhou/Downloads/CSC401_NLP_origin/A1/Wordlists/clitics'
+stop_dir = '/Users/jasonzhou/Downloads/CSC401_NLP_origin/A1/Wordlists/StopWords'
 
 def preproc1( comment , steps=range(1,11)):
     ''' This function pre-processes a single comment
@@ -44,6 +40,7 @@ def preproc1( comment , steps=range(1,11)):
         #Remove all URLs (i.e., tokens beginning with http or www)
         comment = re.sub(r'http\S+', '', comment, flags=re.MULTILINE)
         comment = re.sub(r'www\S+', '', comment, flags=re.MULTILINE)
+        comment = re.sub(r'@\S+','',comment, flags=re.MULTILINE)
         # comment = re.sub(r'(?:(?:www|http|https):\/\/)?([-a-zA-Z0-9.]{2,256}\.[a-z]{2,4})\b(?:\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?',"",comment,flags=re.MULTILINE)
         # reference: https://stackoverflow.com/questions/38804425/remove-urls-from-a-text-file
     if 4 in steps:
@@ -89,19 +86,19 @@ def preproc1( comment , steps=range(1,11)):
                 comment = comment.replace(word," "+word)
         # print(comment)
 
-    if 6 in steps:
-        # print(comment)
-        utt = nlp(comment)
-        # for token in utt:
-        #     print(token.text, token.lemma_, token.pos_, token.tag_)
-        temp = ''
-        for token in utt:
-            temp += token.text + "/" + token.tag_
-            temp += ' '
-        comment = temp
-        # print(comment)
+    # if 6 in steps:
+    #     # print(comment)
+    #     utt = nlp(comment)
+    #     # for token in utt:
+    #     #     print(token.text, token.lemma_, token.pos_, token.tag_)
+    #     temp = ''
+    #     for token in utt:
+    #         temp += token.text + "/" + token.tag_
+    #         temp += ' '
+    #     comment = temp
+    #     # print(comment)
 
-    if 7 in steps:
+    if 6 in steps:
         # print(comment)
         stop_words = open(stop_dir).read().split('\n')
         stop_words = list(filter(('').__ne__, stop_words))
@@ -110,45 +107,44 @@ def preproc1( comment , steps=range(1,11)):
         temp = ''
         # print(comment)
         for word in comment:
-            word2 = word.split('/')
-            if word2[0].lower() not in stop_words:
+            if word.lower() not in stop_words:
                 temp += word + ' '
         # print(temp)
         comment = temp
 
-    if 8 in steps:
-        comment = comment.split(" ")
-        comment = list(filter(('').__ne__, comment))
-        origin_comment = ''
-        for word in comment:
-            origin_comment += word.split('/')[0] + ' '
+    if 7 in steps:
+        # comment = comment.split(" ")
+        # comment = list(filter(('').__ne__, comment))
+        # origin_comment = ''
+        # for word in comment:
+        #     origin_comment += word.split('/')[0] + ' '
         # print(origin_comment)
-        utt2 = nlp(origin_comment)
+        utt = nlp(comment)
         temp = ''
-        for token in utt2:
+        for token in utt:
             if token.lemma_.startswith('-'):
-                temp += token.text + "/" + token.tag_
+                temp += token.text
             else:
-                temp += token.lemma_ + "/" + token.tag_
+                temp += token.lemma_
             temp += ' '
         # print(temp)
         comment = temp
 
-    if 9 in steps:
-        temp = ''
-        comment = comment.split(" ")
-        comment = list(filter(('').__ne__, comment))
-        # print(comment)
-        for i, word in enumerate(comment):
-            if '/' in word:
-                if word.split('/')[-1] == '.' and i != len(comment)-1:
-                    if comment[i+1].split('/')[0].isalpha():
-                        temp += word + '\n' + ' '
-                    else:
-                        temp += word + ' '
-                else:
-                    temp += word + ' '
-        comment = temp
+    # if 9 in steps:
+    #     temp = ''
+    #     comment = comment.split(" ")
+    #     comment = list(filter(('').__ne__, comment))
+    #     # print(comment)
+    #     for i, word in enumerate(comment):
+    #         if '/' in word:
+    #             if word.split('/')[-1] == '.' and i != len(comment)-1:
+    #                 if comment[i+1].split('/')[0].isalpha():
+    #                     temp += word + '\n' + ' '
+    #                 else:
+    #                     temp += word + ' '
+    #             else:
+    #                 temp += word + ' '
+    #     comment = temp
         # print(comment)
 
         # origin_comment = ''
@@ -180,16 +176,26 @@ def preproc1( comment , steps=range(1,11)):
         # print(temp)
         # comment = temp
 
-    if 10 in steps:
-        temp = ''
+    if 8 in steps:
+        # temp = ''
+        # comment = comment.split(" ")
+        # comment = list(filter(('').__ne__, comment))
+        # # print(comment)
+        # for word in comment:
+        #     # print(word)
+        #     temp += word.split('/')[0].lower() +'/'+ word.split('/')[1] + ' '
+        # comment = temp
+        # print(comment)
+        comment = comment.lower()
+
+    if 9 in steps:
         comment = comment.split(" ")
         comment = list(filter(('').__ne__, comment))
-        # print(comment)
+        temp = ''
         for word in comment:
-            # print(word)
-            temp += word.split('/')[0].lower() +'/'+ word.split('/')[1] + ' '
+            if word.isalpha():
+                temp += word + ' '
         comment = temp
-        # print(comment)
 
     modComm = comment
     return modComm
@@ -203,38 +209,38 @@ def main( args ):
             fullFile = os.path.join(subdir, file)
             print( "Processing " + fullFile)
 
-            data = json.load(open(fullFile))
-
-            # TODO: select appropriate args.max lines
-            # data_sample = np.random.choice(data, args.max, replace=False)
-
-            # data_sample = data[0:args.max]
-            # random selection (not required)
-            # indices = np.random.choice(len(data),args.max)
-            # print(indices[0:10])
-            # data_sample = [data[i] for i in indices]
-
-            # print("data_sample_length", len(data_sample))
-            # print("data", data_sample[0])
-
-            ID = args.ID[0]
-            print(ID)
-            sample_index = ID % len(data)
-            print(sample_index + args.max)
-            print(len(data))
-            data_sample = data[sample_index : sample_index+args.max]
-
-            # TODO: read those lines with something like `j = json.loads(line)`
-            data_sample_line = [json.loads(data_sample[i]) for i in range(len(data_sample))]
-            # print("data_sample_line_length", len(data_sample))
-            # print("data_line", data_sample_line[0:2])
-
-            # TODO: choose to retain fields from those lines that are relevant to you
-            # TODO: add a field to each selected line called 'cat' with the value of 'file' (e.g., 'Alt', 'Right', ...)
-            print(len(data_sample_line))
-            for i in range(len(data_sample_line)):
-                data_sample_line[i]= {k: v for k, v in data_sample_line[i].items() if k == 'id' or k == 'body'}
-                data_sample_line[i]['cat'] = file
+            # data = json.load(open(fullFile))
+            scores, sents = [], []
+            with open(fullFile) as csvfile:
+                tweetreader = csv.reader(csvfile,delimiter=',')
+                for row in tweetreader:
+                    # print(row[0])
+                    # print(type(row[5]))
+                    tweet = row[5]
+                    sent = preproc1(tweet,range(1,10))
+                    scores.append(int(row[0]))
+                    sents.append(sent)
+    print(len(scores))
+    print(len(sents))
+    print(len(scores) == len(sents))
+            # ID = args.ID[0]
+            # print(ID)
+            # sample_index = ID % len(data)
+            # print(sample_index + args.max)
+            # print(len(data))
+            # data_sample = data[sample_index : sample_index+args.max]
+            #
+            # # TODO: read those lines with something like `j = json.loads(line)`
+            # data_sample_line = [json.loads(data_sample[i]) for i in range(len(data_sample))]
+            # # print("data_sample_line_length", len(data_sample))
+            # # print("data_line", data_sample_line[0:2])
+            #
+            # # TODO: choose to retain fields from those lines that are relevant to you
+            # # TODO: add a field to each selected line called 'cat' with the value of 'file' (e.g., 'Alt', 'Right', ...)
+            # print(len(data_sample_line))
+            # for i in range(len(data_sample_line)):
+            #     data_sample_line[i]= {k: v for k, v in data_sample_line[i].items() if k == 'id' or k == 'body'}
+            #     data_sample_line[i]['cat'] = file
             # print("data_sample_line_length", len(data_sample))
             # print("data_line", data_sample_line[0:2])
 
@@ -243,24 +249,28 @@ def main( args ):
             # TODO: append the result to 'allOutput'
 
 
-            for i in range(len(data_sample_line)):
-            # for i in range(1):
-                data_sample_line[i]['body'] = preproc1(data_sample_line[i]['body'],range(1,11))
-                allOutput.append(json.dumps(data_sample_line[i]))
-                print("finished line: ", i)
-                toc = os.times()[0]
-                print("run time:",toc-tic)
+    #         for i in range(len(data_sample_line)):
+    #         # for i in range(1):
+    #             data_sample_line[i]['body'] = preproc1(data_sample_line[i]['body'],range(1,11))
+    #             allOutput.append(json.dumps(data_sample_line[i]))
+    #             print("finished line: ", i)
+    #             toc = os.times()[0]
+    #             print("run time:",toc-tic)
+    #
+    #         # ex_sent = "'Hi!' says John, 'I'm going to see your cats' dogs e.g.' e.g. Monday cohort. Tuesday session."
+    #         # sent = preproc1(ex_sent,range(1,11))
+    #         # print(sent)
+    #         # print("data_line_proc", data_sample_line[0]['body'])
+    #         toc = os.times()[0]
+    #         print("final run time:",toc-tic)
+    #
+    # fout = open(args.output, 'w')
+    # fout.write(json.dumps(allOutput))
+    # fout.close()
 
-            # ex_sent = "'Hi!' says John, 'I'm going to see your cats' dogs e.g.' e.g. Monday cohort. Tuesday session."
-            # sent = preproc1(ex_sent,range(1,11))
-            # print(sent)
-            # print("data_line_proc", data_sample_line[0]['body'])
-            toc = os.times()[0]
-            print("final run time:",toc-tic)
+# def buildVolcab(data):
 
-    fout = open(args.output, 'w')
-    fout.write(json.dumps(allOutput))
-    fout.close()
+
 
 if __name__ == "__main__":
 
