@@ -2,13 +2,14 @@ import sys
 import argparse
 import os
 import json
-# import numpy as np
+import numpy as np
 import html
 import re
 import time
 import spacy
 import string
 import csv
+
 
 # indir = '/Users/jasonzhou/Downloads/training_1600000_processed_noemoticon.csv'
 indir = '/Users/jasonzhou/Downloads/Hack_data'
@@ -213,13 +214,16 @@ def main( args ):
             scores, sents = [], []
             with open(fullFile) as csvfile:
                 tweetreader = csv.reader(csvfile,delimiter=',')
-                for row in tweetreader:
+                for i, row in enumerate(tweetreader):
                     # print(row[0])
                     # print(type(row[5]))
                     tweet = row[5]
                     sent = preproc1(tweet,range(1,10))
                     scores.append(int(row[0]))
                     sents.append(sent)
+                    if i >= 100000:
+                        break
+
     print(len(scores))
     print(len(sents))
     print(len(scores) == len(sents))
@@ -268,7 +272,30 @@ def main( args ):
     # fout.write(json.dumps(allOutput))
     # fout.close()
 
-# def buildVolcab(data):
+def buildVolcab(data):
+    totalVolcab = []
+    for tweet in data:
+        volcab = {}
+        sent = tweet.split(' ')
+        for word in sent:
+            if word not in volcab.keys():
+                volcab[word] = 1
+            else:
+                volcab[word] += 1
+        totalVolcab.append(volcab)
+    return totalVolcab
+
+def buildMatrix(totalVolcab):
+    wordList = []
+    for volcab in totalVolcab:
+        for word in volcab.keys():
+            if word not in wordList:
+                wordList.append(word)
+    matrix = np.zeros((len(totalVolcab),len(wordList)))
+    for i, volcab in enumerate(totalVolcab):
+        for j, key_word in enumerate(wordList):
+            if key_word in volcab.keys():
+                matrix[i][j] = volcab[key_word]
 
 
 
