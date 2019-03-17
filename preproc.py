@@ -9,14 +9,24 @@ import time
 import spacy
 import string
 import csv
+import pandas as pd
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.svm import SVC
+from scipy.sparse import csc_matrix
 
 
-# indir = '/Users/jasonzhou/Downloads/training_1600000_processed_noemoticon.csv'
-indir = '/Users/jasonzhou/Downloads/Hack_data'
-abbv_dir_1 = '/Users/jasonzhou/Downloads/CSC401_NLP_origin/A1/Wordlists/abbrev.english'
-abbv_dir_2 = '/Users/jasonzhou/Downloads/CSC401_NLP_origin/A1/Wordlists/pn_abbrev.english'
-clitics_dir = '/Users/jasonzhou/Downloads/CSC401_NLP_origin/A1/Wordlists/clitics'
-stop_dir = '/Users/jasonzhou/Downloads/CSC401_NLP_origin/A1/Wordlists/StopWords'
+
+# indir = '/Users/jasonzhou/Downloads/Hack_data'
+# abbv_dir_1 = '/Users/jasonzhou/Downloads/CSC401_NLP_origin/A1/Wordlists/abbrev.english'
+# abbv_dir_2 = '/Users/jasonzhou/Downloads/CSC401_NLP_origin/A1/Wordlists/pn_abbrev.english'
+# clitics_dir = '/Users/jasonzhou/Downloads/CSC401_NLP_origin/A1/Wordlists/clitics'
+# stop_dir = '/Users/jasonzhou/Downloads/CSC401_NLP_origin/A1/Wordlists/StopWords'
+
+indir = 'Hack_data'
+abbv_dir_1 = '/u/cs401/Wordlists/abbrev.english'
+abbv_dir_2 = '/u/cs401/Wordlists/pn_abbrev.english'
+clitics_dir = '/u/cs401/Wordlists/clitics'
+stop_dir = '/u/cs401/Wordlists/StopWords'
 
 def preproc1( comment , steps=range(1,11)):
     ''' This function pre-processes a single comment
@@ -87,18 +97,6 @@ def preproc1( comment , steps=range(1,11)):
                 comment = comment.replace(word," "+word)
         # print(comment)
 
-    # if 6 in steps:
-    #     # print(comment)
-    #     utt = nlp(comment)
-    #     # for token in utt:
-    #     #     print(token.text, token.lemma_, token.pos_, token.tag_)
-    #     temp = ''
-    #     for token in utt:
-    #         temp += token.text + "/" + token.tag_
-    #         temp += ' '
-    #     comment = temp
-    #     # print(comment)
-
     if 6 in steps:
         # print(comment)
         stop_words = open(stop_dir).read().split('\n')
@@ -114,12 +112,6 @@ def preproc1( comment , steps=range(1,11)):
         comment = temp
 
     if 7 in steps:
-        # comment = comment.split(" ")
-        # comment = list(filter(('').__ne__, comment))
-        # origin_comment = ''
-        # for word in comment:
-        #     origin_comment += word.split('/')[0] + ' '
-        # print(origin_comment)
         utt = nlp(comment)
         temp = ''
         for token in utt:
@@ -131,62 +123,7 @@ def preproc1( comment , steps=range(1,11)):
         # print(temp)
         comment = temp
 
-    # if 9 in steps:
-    #     temp = ''
-    #     comment = comment.split(" ")
-    #     comment = list(filter(('').__ne__, comment))
-    #     # print(comment)
-    #     for i, word in enumerate(comment):
-    #         if '/' in word:
-    #             if word.split('/')[-1] == '.' and i != len(comment)-1:
-    #                 if comment[i+1].split('/')[0].isalpha():
-    #                     temp += word + '\n' + ' '
-    #                 else:
-    #                     temp += word + ' '
-    #             else:
-    #                 temp += word + ' '
-    #     comment = temp
-        # print(comment)
-
-        # origin_comment = ''
-        # for word in comment:
-        #     origin_comment += word.split('/')[0] + ' '
-        # print(origin_comment)
-        # nlp = spacy.load('en')
-
-        # doc = nlp(origin_comment)
-        # temp = ''
-        # for sent in doc.sents:
-        #     # print(sent.text  + '\n')
-        #     for word in sent:
-        #         if word.lemma_.startswith('-'):
-        #             temp += word.text + "/" + word.tag_
-        #         else:
-        #             temp += word.lemma_ + "/" + word.tag_
-        #         temp += " "
-        #     temp += "\n"
-
-        # temp = ''
-        # for word in doc:
-        #     temp += word.text + "/" + word.tag_
-        #     if word.is_sent_start == True:
-        #         temp += '\n'
-        #     else:
-        #         # if word.text.isalpha():
-        #         temp += ' '
-        # print(temp)
-        # comment = temp
-
     if 8 in steps:
-        # temp = ''
-        # comment = comment.split(" ")
-        # comment = list(filter(('').__ne__, comment))
-        # # print(comment)
-        # for word in comment:
-        #     # print(word)
-        #     temp += word.split('/')[0].lower() +'/'+ word.split('/')[1] + ' '
-        # comment = temp
-        # print(comment)
         comment = comment.lower()
 
     if 9 in steps:
@@ -201,77 +138,6 @@ def preproc1( comment , steps=range(1,11)):
     modComm = comment
     return modComm
 
-def main( args ):
-    tic = os.times()[0]
-    allOutput = []
-    for subdir, dirs, files in os.walk(indir):
-        # files = [files[3]]# to-be-deleted
-        for file in files:
-            fullFile = os.path.join(subdir, file)
-            print( "Processing " + fullFile)
-
-            # data = json.load(open(fullFile))
-            scores, sents = [], []
-            with open(fullFile) as csvfile:
-                tweetreader = csv.reader(csvfile,delimiter=',')
-                for i, row in enumerate(tweetreader):
-                    # print(row[0])
-                    # print(type(row[5]))
-                    tweet = row[5]
-                    sent = preproc1(tweet,range(1,10))
-                    scores.append(int(row[0]))
-                    sents.append(sent)
-                    if i >= 100000:
-                        break
-
-    print(len(scores))
-    print(len(sents))
-    print(len(scores) == len(sents))
-            # ID = args.ID[0]
-            # print(ID)
-            # sample_index = ID % len(data)
-            # print(sample_index + args.max)
-            # print(len(data))
-            # data_sample = data[sample_index : sample_index+args.max]
-            #
-            # # TODO: read those lines with something like `j = json.loads(line)`
-            # data_sample_line = [json.loads(data_sample[i]) for i in range(len(data_sample))]
-            # # print("data_sample_line_length", len(data_sample))
-            # # print("data_line", data_sample_line[0:2])
-            #
-            # # TODO: choose to retain fields from those lines that are relevant to you
-            # # TODO: add a field to each selected line called 'cat' with the value of 'file' (e.g., 'Alt', 'Right', ...)
-            # print(len(data_sample_line))
-            # for i in range(len(data_sample_line)):
-            #     data_sample_line[i]= {k: v for k, v in data_sample_line[i].items() if k == 'id' or k == 'body'}
-            #     data_sample_line[i]['cat'] = file
-            # print("data_sample_line_length", len(data_sample))
-            # print("data_line", data_sample_line[0:2])
-
-            # TODO: process the body field (j['body']) with preproc1(...) using default for `steps` argument
-            # TODO: replace the 'body' field with the processed text
-            # TODO: append the result to 'allOutput'
-
-
-    #         for i in range(len(data_sample_line)):
-    #         # for i in range(1):
-    #             data_sample_line[i]['body'] = preproc1(data_sample_line[i]['body'],range(1,11))
-    #             allOutput.append(json.dumps(data_sample_line[i]))
-    #             print("finished line: ", i)
-    #             toc = os.times()[0]
-    #             print("run time:",toc-tic)
-    #
-    #         # ex_sent = "'Hi!' says John, 'I'm going to see your cats' dogs e.g.' e.g. Monday cohort. Tuesday session."
-    #         # sent = preproc1(ex_sent,range(1,11))
-    #         # print(sent)
-    #         # print("data_line_proc", data_sample_line[0]['body'])
-    #         toc = os.times()[0]
-    #         print("final run time:",toc-tic)
-    #
-    # fout = open(args.output, 'w')
-    # fout.write(json.dumps(allOutput))
-    # fout.close()
-
 def buildVolcab(data):
     totalVolcab = []
     for tweet in data:
@@ -285,35 +151,106 @@ def buildVolcab(data):
         totalVolcab.append(volcab)
     return totalVolcab
 
-def buildMatrix(totalVolcab):
+def buildwordList(totalVolcab):
     wordList = []
     for volcab in totalVolcab:
         for word in volcab.keys():
             if word not in wordList:
                 wordList.append(word)
+    return wordList
+
+def buildMatrix(wordList, totalVolcab):
     matrix = np.zeros((len(totalVolcab),len(wordList)))
     for i, volcab in enumerate(totalVolcab):
         for j, key_word in enumerate(wordList):
             if key_word in volcab.keys():
                 matrix[i][j] = volcab[key_word]
-
+    return matrix
 
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='Process each .')
-    parser.add_argument('ID', metavar='N', type=int, nargs=1,
-                        help='your student ID')
-    parser.add_argument("-o", "--output", help="Directs the output to a filename of your choice", required=True)
-    parser.add_argument("--max", help="The maximum number of comments to read from each file", default=10000)
-    args = parser.parse_args()
-    print(args)
-
-    if (args.max > 200272):
-        print( "Error: If you want to read more than 200,272 comments per file, you have to read them all." )
-        sys.exit(1)
+    # parser = argparse.ArgumentParser(description='Process each .')
+    # parser.add_argument('ID', metavar='N', type=int, nargs=1,
+    #                     help='your student ID')
+    # parser.add_argument("-o", "--output", help="Directs the output to a filename of your choice", required=True)
+    # parser.add_argument("--max", help="The maximum number of comments to read from each file", default=10000)
+    # args = parser.parse_args()
+    # print(args)
+    #
+    # if (args.max > 200272):
+    #     print( "Error: If you want to read more than 200,272 comments per file, you have to read them all." )
+    #     sys.exit(1)
 
     nlp = spacy.load('en', disable=['parser', 'ner'])
-    main(args)
-    # python a1_preproc.py 999123456 -o preproc.json
-    # python a1_preproc.py 1003300545 -o preproc.json
+    # sents = json.load(open('sents.json'))
+
+    # scores = json.load(open('10scores.json'))
+    # wordList = json.load(open('10wordList.json'))
+    # # print(type(sents))
+    # scoreMatrix = np.array(scores)
+    # print(scoreMatrix.shape)
+    # matrix = np.load('10matrix.npz')
+    # matrix = matrix['arr_0']
+    # print(matrix.shape)
+
+    # clf = AdaBoostClassifier()
+    # clf.fit(matrix,scoreMatrix)
+    for subdir, dirs, files in os.walk(indir):
+        for file in files:
+            if not file.startswith('.DS_Store'):
+                fullFile = os.path.join(subdir, file)
+                print( "Processing " + fullFile)
+
+                scores, sents = [], []
+
+                df = pd.read_csv(fullFile,sep='delimiter',header=None)
+                indices = np.arange(len(df))
+                np.random.shuffle(indices)
+                tweet = df.iloc[0,0].split(',')[5]
+                j = 0
+                for i in range(50000):
+                    j += 1
+                    if j >= 10000:
+                        print(i)
+                        j = 0
+                    index = indices[i]
+                    tweet = df.iloc[index,0].split(',')[5]
+                    tweet = tweet.lstrip('\"')
+                    tweet = tweet.rstrip('\"')
+
+                    sent = preproc1(tweet,range(1,10))
+                    sents.append(sent)
+
+                    score = df.iloc[index,0].split(',')[0]
+                    score = score.lstrip('\"')
+                    score = score.rstrip('\"')
+                    score = int(score) - 2
+                    scores.append(score)
+
+                print(len(scores))
+                print(len(sents))
+                print(len(scores) == len(sents))
+
+    totalVolcab = buildVolcab(sents)
+    wordList = buildwordList(totalVolcab)
+    matrix = buildMatrix(wordList, totalVolcab)
+    print(matrix.shape)
+    scoreMatrix = np.array(scores)
+    print(scoreMatrix.shape)
+
+
+    clf = SVC(kernel='linear',max_iter=1000)
+    clf.fit(matrix,scoreMatrix)
+
+    test_sentence = "I'm emotional, devastated and I'm distressed, because I can't find anywhere to stay"
+    test_sentence = preproc1(test_sentence,range(1,10))
+    sent_list = test_sentence.split(' ')
+    sent_list = list(filter(('').__ne__, sent_list))
+    x_test = np.zeros((len(sent_list),1))
+    for word in sent_list:
+                if word in wordList:
+                    word_index = wordList.index(word)
+                    x_test[word_index] += 1
+    y_pred = clf.predict(x_test)
+    print(y_pred)
